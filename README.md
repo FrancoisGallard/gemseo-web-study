@@ -17,7 +17,7 @@ A web interface for GEMSEO to prototype MDO studies
 [![Codecov branch](https://img.shields.io/codecov/c/gitlab/gemseo:dev/gemseo-web-study/develop)](https://app.codecov.io/gl/gemseo:dev/gemseo-web-study)
 
 To launch the website:
-streamlit run .\src\gemseo_web_study\Welcome_to_GEMSEO_study.py
+streamlit run Welcome_to_GEMSEO_study.py
 =======
 ## Overview
 

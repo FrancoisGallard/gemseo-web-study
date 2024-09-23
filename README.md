@@ -11,7 +11,7 @@ A web interface for GEMSEO to prototype MDO studies
 =======
 # gemseo-web-study
 
-[![PyPI - License](https://img.shields.io/pypi/l/gemseo)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
+[![PyPI - License](https://img.shields.io/pypi/l/gemseo-web-study)](https://www.gnu.org/licenses/lgpl-3.0.en.html)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/gemseo-web-study)](https://pypi.org/project/gemseo-web-study/)
 [![PyPI](https://img.shields.io/pypi/v/gemseo-web-study)](https://pypi.org/project/gemseo-web-study/)
 [![Codecov branch](https://img.shields.io/codecov/c/gitlab/gemseo:dev/gemseo-web-study/develop)](https://app.codecov.io/gl/gemseo:dev/gemseo-web-study)

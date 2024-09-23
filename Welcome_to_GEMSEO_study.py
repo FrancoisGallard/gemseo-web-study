@@ -19,6 +19,7 @@
 #    OTHER AUTHORS   - MACROSCOPIC CHANGES
 from __future__ import annotations
 
+import json
 from os.path import dirname
 from os.path import join
 
@@ -33,7 +34,7 @@ st.set_page_config(page_title="GEMSEO Study", layout="wide")
 
 st.title("GEMSEO Study analysis and prototyping")
 
-logo = Image.open(join(dirname(__file__), "logo-small.webp"))
+logo = Image.open(join(dirname(__file__), "logo-small.png"))
 st.image(logo, width=300)
 
 st.markdown(
@@ -58,3 +59,33 @@ In particular, it is a standard to represent the MDO formulations, see: [link]({
         "https://gemseo.readthedocs.io/en/stable/mdo/mdo_formulations.html",
     )
 )
+
+st.divider()
+st.subheader("Saving and loading a study")
+st.markdown(
+    """
+    You can download the study configuration as a JSON text file and load it in the future.
+    """
+)
+# Handle data saving
+
+
+uploaded_file = st.file_uploader("Load existing study")
+if uploaded_file is not None:
+    state = json.loads(uploaded_file.read())
+    for k, v in state.items():
+        st.session_state[k] = v
+
+download_data = {}
+
+
+def update_download_data():
+    download_data.clear()
+    for k, v in st.session_state.items():
+        if k.startswith("#"):
+            download_data[k] = v
+
+
+update_download_data()
+st.download_button("Save current study", json.dumps(download_data), file_name="gemseo_study.json",
+                   on_click=update_download_data)

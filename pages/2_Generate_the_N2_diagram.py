@@ -1,4 +1,4 @@
-# noqa: D100 putting a string makes ST fail
+# noqa: D100 N999 putting a string makes ST fail
 # Copyright 2021 IRT Saint Exupéry, https://www.irt-saintexupery.com
 #
 # This program is free software; you can redistribute it and/or
@@ -19,31 +19,34 @@
 #    OTHER AUTHORS   - MACROSCOPIC CHANGES
 from __future__ import annotations
 
+import pathlib
 import tempfile
-from os.path import join
+from pathlib import Path
 
 import streamlit as st
 import streamlit.components.v1 as components
-from gemseo import MDODiscipline
-from gemseo.core.coupling_structure import MDOCouplingStructure
-from gemseo.problems.scalable.linear.disciplines_generator import create_disciplines_from_desc
+from gemseo.core.coupling_structure import CouplingStructure
+from gemseo.core.discipline.discipline import Discipline
+from gemseo.problems.mdo.scalable.linear.disciplines_generator import (
+    create_disciplines_from_desc,
+)
 from matplotlib.pyplot import gcf
 
 from pages import handle_session_state
 
 
 @st.cache_data
-def create_mdo_disciplines(disc_desc) -> list[MDODiscipline]:
+def create_mdo_disciplines(disc_desc) -> list[Discipline]:
     """Creates the disciplines instances."""
-
     disciplines = create_disciplines_from_desc(
-        disc_desc, grammar_type=MDODiscipline.GrammarType.SIMPLE
+        disc_desc, grammar_type=Discipline.GrammarType.SIMPLE
     )
     st.session_state["disciplines"] = disciplines
     return disciplines
 
 
 def create_disciplines() -> None:
+    """Creates the disciplines."""
     disc_desc = st.session_state.get("#disc_desc")
     try:
         if disc_desc is not None:
@@ -62,19 +65,19 @@ def generate_html(coupling_structure) -> str:
         _disciplines: The disciplines instances.
         disc_desc: The disciplines descriptions.
     """
-    tmpdir = tempfile.mkdtemp()
-    tmp_file = join(tmpdir, "n2.png")
-    tmp_html = join(tmpdir, "n2.html")
+    tmpdir = Path(tempfile.mkdtemp())
+    tmp_file = tmpdir / "n2.png"
+    tmp_html = tmpdir / "n2.html"
 
-    coupling_structure.plot_n2_chart(file_path=tmp_file, show_data_names=True,
-                                     save=True, show=False, show_html=False
-                                     )
-    with open(tmp_html, encoding="utf-8") as html_file:  #
+    coupling_structure.plot_n2_chart(
+        file_path=tmp_file, show_data_names=True, save=True, show=False, show_html=False
+    )
+    with pathlib.Path(tmp_html).open(encoding="utf-8") as html_file:  #
         return html_file.read()
 
 
 @st.cache_data
-def create_coupling_structure(disc_desc: list) -> MDOCouplingStructure:
+def create_coupling_structure(disc_desc: list) -> CouplingStructure:
     """Generates the HTML file.
 
     Args:
@@ -82,7 +85,7 @@ def create_coupling_structure(disc_desc: list) -> MDOCouplingStructure:
         disc_desc: The disciplines descriptions.
     """
     disciplines = st.session_state["disciplines"]
-    return MDOCouplingStructure(disciplines)
+    return CouplingStructure(disciplines)
 
 
 def handle_n2_genration() -> None:
@@ -91,23 +94,25 @@ def handle_n2_genration() -> None:
     From the disciplines tab, creates an N2 diagram in the page if the inputs are ready.
     """
     if "disciplines" in st.session_state:
-        disciplines = st.session_state["disciplines"]
-        format = st.selectbox(
+        n2_format = st.selectbox(
             "N2 diagram format", ["HTML", "basic"], index=1, key="N2 diagram format"
         )
         disc_desc = st.session_state["#disc_desc"]
         coupling_structure = create_coupling_structure(disc_desc)
-        if format == "HTML" and st.button("Generate N2", type="primary"):
-
+        if n2_format == "HTML" and st.button("Generate N2", type="primary"):
             source_code = generate_html(coupling_structure)
             st.download_button(
                 "Download N2 standalone HTML file", source_code, file_name="N2.html"
             )
             components.html(source_code, width=800, height=800)
         else:
-            coupling_structure._MDOCouplingStructure__draw_n2_chart(
-                file_path="", show_data_names=True, save=False, show=False,
-                fig_size=(8, 8))
+            coupling_structure._CouplingStructure__draw_n2_chart(
+                file_path="",
+                show_data_names=True,
+                save=False,
+                show=False,
+                fig_size=(8, 8),
+            )
 
             st.pyplot(gcf())
 
@@ -121,7 +126,8 @@ st.title("N2 diagram generation")
 # Main display sequence
 st.markdown(
     """
-The N2 (pronounce "N square") diagram represents the coupling between the disciplines, see: [link]({}).
+The N2 (pronounce "N square") diagram represents the coupling between the disciplines,
+see: [link]({}).
 """.format("https://gemseo.readthedocs.io/en/stable/mdo/coupling.html")
 )
 

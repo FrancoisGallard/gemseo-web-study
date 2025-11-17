@@ -1,4 +1,4 @@
-# noqa: D100 putting a string makes ST fail
+# noqa: D100 N999 putting a string makes ST fail
 # Copyright 2021 IRT Saint Exupéry, https://www.irt-saintexupery.com
 #
 # This program is free software; you can redistribute it and/or
@@ -20,20 +20,20 @@
 from __future__ import annotations
 
 import tempfile
-from os.path import join
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import streamlit as st
 import streamlit.components.v1 as components
-from gemseo import MDODiscipline
 from gemseo import create_design_space
 from gemseo import create_scenario
-from gemseo import get_available_formulations
 
-from pages import handle_session_state, create_disciplines, handle_disciplines_summary
+from pages import create_disciplines
+from pages import handle_disciplines_summary
+from pages import handle_session_state
 
 if TYPE_CHECKING:
-    from gemseo.core.mdo_scenario import MDOScenario
+    from gemseo.scenarios.mdo_scenario import MDOScenario
 
 CTYPES = ["inequality", "equality"]
 
@@ -43,8 +43,9 @@ def handle_design_variables() -> None:
     all_inputs = st.session_state["#all_inputs"]
     key = "#Design variables"
     design_variables = st.multiselect(
-        "Design variables", options=all_inputs, default=st.session_state.get(key, [])
-    )
+        "Design variables", options=all_inputs
+    )  # , default=st.session_state.get(key, [])
+    # )
     st.session_state[key] = design_variables
 
 
@@ -54,7 +55,7 @@ def handle_formulation() -> None:
     if formulations_key in st.session_state:
         formulations = st.session_state[formulations_key]
     else:
-        formulations = get_available_formulations()
+        formulations = ["MDF", "IDF", "DisciplinaryOpt"]
         st.session_state[formulations_key] = formulations
 
     key = "#MDO formulation index"
@@ -102,8 +103,9 @@ def handle_constraints() -> None:
         st.divider()
         key = f"#Constraint {i + 1}"
         c_index = st.session_state.get(key)
-        constr = st.selectbox(f"Constraint {i + 1}", all_outputs,
-                              index=c_index, key="c_" + key)
+        constr = st.selectbox(
+            f"Constraint {i + 1}", all_outputs, index=c_index, key="c_" + key
+        )
         if constr is not None:
             st.session_state[key] = all_outputs.index(constr)
 
@@ -139,30 +141,35 @@ def handle_scenario() -> MDOScenario | None:
         for name in design_variables:
             design_space.add_variable(name=name)
         try:
+            formulation_name = st.session_state["#mdo formulation"]
+            if formulation_name == "IDF":
+                options = {"include_weak_coupling_targets": False}
+            else:
+                options = {}
             scenario = create_scenario(
                 design_space=design_space,
                 objective_name=objective,
                 maximize_objective=st.session_state["#maximize_objective"],
                 disciplines=disciplines,
-                formulation=st.session_state["#mdo formulation"],
-                grammar_type=MDODiscipline.GrammarType.SIMPLE,
+                formulation_name=formulation_name,
+                **options,
             )
             cmap = {"inequality": "ineq", "equality": "eq"}
             constraints = st.session_state["#constraints"]
             for constr, ctype in constraints.items():
                 scenario.add_constraint(constr, constraint_type=cmap[ctype])
-        except Exception as err:
-            st.error(str(err))  # noqa: G200
+        except Exception as err:  # noqa: BLE001
+            st.error(str(err))
             return None
     return scenario
 
 
 def generate_xdsm(scenario: MDOScenario) -> None:
     """Generates the XDSM diagram."""
-    tmpdir = tempfile.mkdtemp()
+    tmpdir = Path(tempfile.mkdtemp())
     scenario.xdsmize(directory_path=tmpdir)
-    tmp_html = join(tmpdir, "xdsm.html")
-    with open(tmp_html, encoding="utf-8") as html_file:
+    tmp_html = tmpdir / "xdsm.html"
+    with tmp_html.open(encoding="utf-8") as html_file:
         source_code = html_file.read()
         st.download_button(
             "Download XDSM standalone HTML file", source_code, file_name="xdsm.html"

@@ -22,39 +22,39 @@ from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
-from gemseo.core.discipline import MDODiscipline
-from gemseo.problems.scalable.linear.disciplines_generator import create_disciplines_from_desc
+from gemseo.core.discipline.discipline import Discipline
+from gemseo.problems.mdo.scalable.linear.disciplines_generator import (
+    create_disciplines_from_desc,
+)
 
 
 def handle_session_state():
-    """
-    Handles the session state to allow it to be passed between the pages.
+    """Handles the session state to allow it to be passed between the pages.
+
     This is a known and dirty workaround in streamlit.
     """
     # this is to keep the widget values between pages
     for k, v in st.session_state.items():
-        if k.startswith('#'):
+        if k.startswith("#"):
             st.session_state[k] = v
 
 
 @st.cache_data
-def create_mdo_disciplines(disc_desc) -> list[MDODiscipline]:
+def create_mdo_disciplines(disc_desc) -> list[Discipline]:
     """Creates the disciplines instances.
 
     Returns:
         The list of disciplines
     """
     disciplines = create_disciplines_from_desc(
-        disc_desc, grammar_type=MDODiscipline.GrammarType.SIMPLE
+        disc_desc, grammar_type=Discipline.GrammarType.SIMPLE
     )
     st.session_state["disciplines"] = disciplines
     return disciplines
 
 
 def create_disciplines() -> None:
-    """
-    Creates the disciplines from the #disc_desc list in the session state.
-    """
+    """Creates the disciplines from the #disc_desc list in the session state."""
     disc_desc = st.session_state.get("#disc_desc")
     try:
         if disc_desc is not None:
@@ -67,8 +67,7 @@ def create_disciplines() -> None:
 
 
 def handle_disciplines_summary() -> None:
-    """Generates a summary of the disciplines Uses a Dataframe view widget.
-    """
+    """Generates a summary of the disciplines Uses a Dataframe view widget."""
     st.divider()
     st.subheader("Disciplines summary")
     disc_desc = st.session_state.get("#disc_desc")
@@ -88,7 +87,6 @@ def handle_disciplines_summary() -> None:
             st.dataframe(df, hide_index=True)
             st.session_state["disciplines_dataframe"] = df
             st.divider()
-
 
     except (ValueError, TypeError):
         if "disciplines" in st.session_state:

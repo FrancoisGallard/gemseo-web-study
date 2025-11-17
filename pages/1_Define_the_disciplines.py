@@ -1,4 +1,4 @@
-# noqa: D100 putting a string makes ST fail
+# noqa: D100 N999 putting a string makes ST fail
 # Copyright 2021 IRT Saint Exupéry, https://www.irt-saintexupery.com
 #
 # This program is free software; you can redistribute it and/or
@@ -22,7 +22,9 @@ from __future__ import annotations
 import streamlit as st
 from streamlit_tags import st_tags
 
-from pages import handle_session_state, create_disciplines, handle_disciplines_summary
+from pages import create_disciplines
+from pages import handle_disciplines_summary
+from pages import handle_session_state
 
 
 def handle_disciplines_number() -> int:
@@ -34,7 +36,8 @@ def handle_disciplines_number() -> int:
     key_val = key + "_val"
     value = st.session_state.get(key_val, 2)
     value = st.slider(
-        "The number of disciplines", min_value=1, max_value=20, value=value)
+        "The number of disciplines", min_value=1, max_value=20, value=value
+    )
     st.session_state[key_val] = value
 
 
@@ -78,7 +81,8 @@ def handle_disciplines_description() -> None:
 
 
 @st.cache_data
-def get_all_ios(disc_desc):
+def get_all_ios(disc_desc: list):
+    """List all disciplines inputs and outputs."""
     all_outputs = set()
     all_inputs = set()
     for _, input_names, output_names in disc_desc:
@@ -89,6 +93,7 @@ def get_all_ios(disc_desc):
 
 
 def handle_all_ios():
+    """Handle all disciplines inputs and outputs."""
     disc_desc = st.session_state.get("#disc_desc")
     if disc_desc is not None:
         all_inputs, all_outputs = get_all_ios(disc_desc)

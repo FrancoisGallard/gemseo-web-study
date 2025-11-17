@@ -21,7 +21,7 @@ classifiers = [
 dynamic = ["version"]
 requires-python = ">=3.9, <3.13"
 dependencies = [
-    "gemseo >=5,<6",
+    "gemseo >=6,<7",
     "streamlit >= 1.27",
     "streamlit_tags"
 ]
